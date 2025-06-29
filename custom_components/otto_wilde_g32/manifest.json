@@ -1,0 +1,12 @@
+{
+  "domain": "otto_wilde_g32",
+  "name": "Otto Wilde G32 Grill",
+  "config_flow": true,
+  "documentation": "https://github.com/zaubii/owg-g32-ha-integration",
+  "issue_tracker": "https://github.com/zaubii/owg-g32-ha-integration/issues",
+  "codeowners": ["@zaubii"],
+  "requirements": [],
+  "version": "4.3.0",
+  "iot_class": "local_push"
+}
+
