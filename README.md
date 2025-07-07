@@ -165,3 +165,7 @@ This integration would not have been possible without the initial work done by t
 ## **Disclaimer**
 
 This is a third-party integration developed by the community and is not officially developed or supported by Otto Wilde GmbH. Use at your own risk.
+
+---
+
+If you find this component useful, consider buying me a coffee! ☕ [https://buymeacoffee.com/zaubii](https://buymeacoffee.com/zaubii)
