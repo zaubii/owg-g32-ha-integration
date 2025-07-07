@@ -17,7 +17,7 @@ from .const import DOMAIN
 _LOGGER = logging.getLogger(__name__)
 
 BINARY_SENSOR_TYPES = {
-    "lid_open": {"name": "Lid", "device_class": BinarySensorDeviceClass.OPENING},
+    "firebox_open": {"name": "Firebox", "device_class": BinarySensorDeviceClass.OPENING},
     "light_on": {"name": "Light", "device_class": BinarySensorDeviceClass.LIGHT},
     "gas_low": {"name": "Gas Low", "device_class": BinarySensorDeviceClass.PROBLEM},
 }
@@ -54,8 +54,9 @@ class G32BinarySensor(BinarySensorEntity):
         devicenickname = grill_info.get("nickname", f"G32 {self._serial_number[:6]}")
         
         self._attr_unique_id = f"{self._serial_number}_{self._sensor_id}"
-        self.entity_id = f"binary_sensor.{devicenickname.lower().replace(' ', '_')}_{self._sensor_id}"
-        self._attr_name = config["name"] # HA will prefix with device name
+        sanitized_nickname = devicenickname.lower().replace(' ', '_').replace('-', '_')
+        self.entity_id = f"binary_sensor.{sanitized_nickname}_{self._sensor_id}"
+        self._attr_name = config["name"]
         self._attr_device_class = config.get("device_class")
         self._attr_is_on = None
         self._attr_should_poll = False
@@ -64,11 +65,23 @@ class G32BinarySensor(BinarySensorEntity):
             identifiers={(DOMAIN, self._serial_number)},
         )
 
+    @property
+    def icon(self) -> str | None:
+        """Return the icon to use in the frontend."""
+        if self._sensor_id == "firebox_open":
+            return "mdi:window-opened" if self.is_on else "mdi:window-closed"
+        if self._sensor_id == "light_on":
+            return "mdi:wall-sconce-flat"
+        return None
+
     @callback
     def _handle_update(self, data: dict[str, Any]) -> None:
         """Handle data updates from the TCP stream."""
-        if self._sensor_id in data:
-            self._attr_is_on = data[self._sensor_id]
+        # The key from the API is still 'lid_open', we just map it to our new sensor_id
+        api_key = "lid_open" if self._sensor_id == "firebox_open" else self._sensor_id
+        
+        if api_key in data:
+            self._attr_is_on = data[api_key]
             self.async_write_ha_state()
     
     async def async_added_to_hass(self) -> None:

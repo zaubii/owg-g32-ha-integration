@@ -1,0 +1,7 @@
+{
+  "name": "Otto Wilde G32 Grill",
+  "render_readme": true,
+  "domains": ["sensor", "binary_sensor", "switch"],
+  "homeassistant": "2023.8.0",
+  "iot_class": "Local Push"
+} 
