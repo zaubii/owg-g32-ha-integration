@@ -262,43 +262,9 @@ class OttoWildeG32ApiClient:
         except (ValueError, IndexError): return None
 
     def _parse_temp_value(self, h: str) -> float | None:
-        """Parse temperature value from hex string, handling special invalid values."""
-        if not h or len(h) != 4:
-            return None
-            
-        # Normalize to lowercase for consistent comparison
-        h_lower = h.lower()
-        
-        # Check for known invalid/special temperature values
-        invalid_patterns = {
-            "9600",  # Known invalid pattern from original code
-            "ffff",  # Max value, typically indicates sensor disconnected
-            "0000",  # Zero value, may indicate sensor error in some contexts
-            "ffef",  # Another common invalid pattern
-            "feff",  # Byte-swapped invalid pattern
-        }
-        
-        if h_lower in invalid_patterns:
-            return None
-        
-        try:
-            # Parse the temperature value: first byte * 10 + second byte / 10
-            temp_whole = int(h[:2], 16)
-            temp_decimal = int(h[2:], 16)
-            
-            # Sanity check: temperature should be within reasonable range
-            # G32 grill typically operates in range -50°C to 500°C
-            calculated_temp = (temp_whole * 10) + (temp_decimal / 10.0)
-            
-            if calculated_temp < -50 or calculated_temp > 600:
-                _LOGGER.debug("Temperature value %s (%.1f°C) outside reasonable range, treating as invalid", h, calculated_temp)
-                return None
-                
-            return calculated_temp
-            
-        except (ValueError, TypeError) as e:
-            _LOGGER.debug("Failed to parse temperature value %s: %s", h, e)
-            return None
+        if h == "9600": return None
+        try: return (int(h[:2], 16) * 10) + (int(h[2:], 16) / 10.0)
+        except (ValueError, TypeError): return None
 
     def register_update_callback(self, sn: str, cb: Callable) -> Callable:
         self._update_callbacks.setdefault(sn, []).append(cb)
