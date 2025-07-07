@@ -9,4 +9,7 @@
   "version": "5.6.0",
   "iot_class": "local_push",
   "loggers": ["custom_components.otto_wilde_g32"]
+  "funding": {
+    "buy_me_a_coffee": "zaubii"
+  }
 }
