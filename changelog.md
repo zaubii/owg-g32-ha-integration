@@ -4,7 +4,9 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## 5.7.0 **\- 2025-01-27**
+## 5.7.0-beta **\- 2025-01-27**
+
+> **⚠️ BETA RELEASE:** This is a beta version containing important bug fixes. Please test thoroughly before using in production environments.
 
 ### **🛠️ Fixed**
 
