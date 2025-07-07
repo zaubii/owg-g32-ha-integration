@@ -1,6 +1,5 @@
 """Config flow for Otto Wilde G32 Grill integration."""
 import logging
-import re
 from typing import Any, Dict
 
 import voluptuous as vol
@@ -17,51 +16,10 @@ from .const import DOMAIN, CONF_DEVICE_TRACKER
 
 _LOGGER = logging.getLogger(__name__)
 
-# Email validation regex pattern
-EMAIL_REGEX = re.compile(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
-
-# Input validation constraints
-MAX_EMAIL_LENGTH = 254  # RFC standard
-MAX_PASSWORD_LENGTH = 128  # Reasonable limit
-MIN_PASSWORD_LENGTH = 1  # At least some password required
-
-def validate_email(email: str) -> str:
-    """Validate and sanitize email input."""
-    if not email or not isinstance(email, str):
-        raise vol.Invalid("Email is required")
-    
-    # Trim whitespace and convert to lowercase
-    email = email.strip().lower()
-    
-    # Check length constraints
-    if len(email) > MAX_EMAIL_LENGTH:
-        raise vol.Invalid(f"Email too long (max {MAX_EMAIL_LENGTH} characters)")
-    
-    # Validate email format
-    if not EMAIL_REGEX.match(email):
-        raise vol.Invalid("Invalid email format")
-    
-    return email
-
-def validate_password(password: str) -> str:
-    """Validate and sanitize password input."""
-    if not password or not isinstance(password, str):
-        raise vol.Invalid("Password is required")
-    
-    # Check length constraints  
-    if len(password) < MIN_PASSWORD_LENGTH:
-        raise vol.Invalid(f"Password too short (min {MIN_PASSWORD_LENGTH} characters)")
-    
-    if len(password) > MAX_PASSWORD_LENGTH:
-        raise vol.Invalid(f"Password too long (max {MAX_PASSWORD_LENGTH} characters)")
-    
-    # Password is returned as-is (no trimming to preserve intentional spaces)
-    return password
-
 STEP_USER_DATA_SCHEMA = vol.Schema(
     {
-        vol.Required(CONF_EMAIL): validate_email,
-        vol.Required(CONF_PASSWORD): validate_password,
+        vol.Required(CONF_EMAIL): str,
+        vol.Required(CONF_PASSWORD): str,
     }
 )
 
@@ -86,18 +44,8 @@ class OttoWildeG32ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_show_form(step_id="user", data_schema=STEP_USER_DATA_SCHEMA)
 
         errors = {}
-        
-        try:
-            # Input validation is handled by the schema validators
-            email = user_input[CONF_EMAIL]
-            password = user_input[CONF_PASSWORD]
-        except vol.Invalid as e:
-            # Handle validation errors from schema
-            _LOGGER.warning("Input validation failed: %s", e)
-            errors["base"] = "invalid_input"
-            return self.async_show_form(
-                step_id="user", data_schema=STEP_USER_DATA_SCHEMA, errors=errors
-            )
+        email = user_input[CONF_EMAIL]
+        password = user_input[CONF_PASSWORD]
 
         session = async_get_clientsession(self.hass)
         # Pass hass to the client for the first time to get grill details for setup

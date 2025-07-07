@@ -86,26 +86,22 @@ async def async_update_options(hass: HomeAssistant, entry: ConfigEntry) -> None:
         if entity_id:
             _LOGGER.info("Grill %s is being tracked by %s", serial_number, entity_id)
             
-            # Create callback factory to properly capture serial_number in closure
-            def _create_state_change_handler(grill_serial_number: str):
-                """Factory function to create state change handler with proper closure."""
-                @callback
-                def _state_change_handler(event):
-                    """Handle device_tracker state changes."""
-                    new_state = event.data.get("new_state")
-                    if not new_state:
-                        return
+            # Define the callback for the state tracker
+            @callback
+            def _state_change_handler(event, sn=serial_number):
+                """Handle device_tracker state changes."""
+                new_state = event.data.get("new_state")
+                if not new_state:
+                    return
 
-                    _LOGGER.debug("State change for %s: %s", event.data.get("entity_id"), new_state.state)
-                    if new_state.state == "home":
-                        _LOGGER.info("Tracked device for grill %s is home. Triggering connection check.", grill_serial_number)
-                        hass.async_create_task(api_client.connect_if_needed(grill_serial_number))
-                return _state_change_handler
+                _LOGGER.debug("State change for %s: %s", event.data.get("entity_id"), new_state.state)
+                if new_state.state == "home":
+                    _LOGGER.info("Tracked device for grill %s is home. Triggering connection check.", sn)
+                    hass.async_create_task(api_client.connect_if_needed(sn))
 
-            # Register the state change listener with properly scoped callback
-            state_handler = _create_state_change_handler(serial_number)
+            # Register the state change listener
             unsubscribe = async_track_state_change_event(
-                hass, [entity_id], state_handler
+                hass, [entity_id], _state_change_handler
             )
             api_client.add_state_listener_unsubscribe(unsubscribe)
 
