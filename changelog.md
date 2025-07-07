@@ -4,6 +4,27 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 5.7.0-beta **\- 2025-01-27**
+
+> **⚠️ BETA RELEASE:** This is a beta version containing important bug fixes. Please test thoroughly before using in production environments.
+
+### **🛠️ Fixed**
+
+* **Critical Race Condition:** Fixed a race condition in device tracker state callbacks that could cause incorrect grill connections when multiple grills are configured. Implemented proper variable closure handling with factory function pattern.
+* **Temperature Parsing Logic Error:** Enhanced temperature parsing to handle invalid hex values more comprehensively. Added case-insensitive detection for invalid patterns (9600, ffff, 0000, ffef, feff) and implemented temperature range validation (-50°C to 600°C).
+* **Input Validation Missing:** Fixed missing input validation in configuration flow that could lead to security vulnerabilities and poor user experience.
+
+### **🛡️ Security**
+
+* **Enhanced Input Validation:** Added comprehensive email format validation with regex pattern matching and proper length constraints (max 254 chars for email, max 128 chars for password).
+* **Input Sanitization:** Implemented proper input sanitization including whitespace trimming and email case normalization to prevent potential injection attacks.
+* **Error Handling:** Improved error handling for invalid inputs with proper user feedback and validation failure reporting.
+
+### **⚡ Performance**
+
+* **Memory Optimization:** Improved memory efficiency by eliminating duplicate function definitions in callback registration loops.
+* **Better Error Handling:** Enhanced temperature sensor error handling and logging for better debugging and reliability.
+
 ## 5.6.0 **\- 2025-07-07**
 
 ### **🚀 Added**
