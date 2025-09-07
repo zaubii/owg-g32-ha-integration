@@ -1,0 +1,137 @@
+substitutions:
+  esphome_name: esphome-web-fb0138
+  friendly_name: XLilygoT5Dev
+
+esphome:
+  name: ${esphome_name}
+  friendly_name: ${friendly_name}
+  min_version: 2024.6.0
+  name_add_mac_suffix: false
+  project:
+    name: esphome.web
+    version: dev
+
+esp32:
+  board: ttgo-t7-v1.3  # PSRAM-aware variant matching most LilyGo T5 dev boards
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+# Allow Over-The-Air updates
+ota:
+  # password: !secret ota_password  # Uncomment to secure OTA
+
+# Allow provisioning Wi-Fi via serial
+improv_serial:
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # Fallback AP in case Wi-Fi credentials are not yet provisioned
+  ap:
+    ssid: "${esphome_name} Fallback"
+    password: "changeme1234"
+
+# In combination with the `ap` this allows the user
+# to provision Wi-Fi credentials to the device via Wi-Fi AP.
+captive_portal:
+
+dashboard_import:
+  package_import_url: github://esphome/example-configs/esphome-web/esp32.yaml@main
+  import_full_config: true
+
+# Sets up Bluetooth LE (Only on ESP32) to allow the user
+# to provision Wi-Fi credentials to the device.
+esp32_improv:
+  authorizer: none  # Anyone in BLE range can provision; change if undesired
+
+# To have a "next url" for improv serial
+web_server:
+
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+spi:
+  clk_pin: 18
+  mosi_pin: 23
+
+font:
+  - file: "fonts/Helvetica.ttf"
+    id: h16
+    size: 16
+    glyphs: "0123456789.:° "
+  - file: "fonts/Helvetica.ttf"
+    id: h24
+    size: 24
+    glyphs: "0123456789.:° "
+
+
+display:
+  - platform: waveshare_epaper
+    cs_pin: 5
+    dc_pin: 17
+    busy_pin:
+      number: 4
+    reset_pin: 16
+    model: 2.13in-ttgo-b73  # 212×104 px non-inverted panel
+    update_interval: 30s
+    full_update_every: 10   # Do a full refresh every 5 min
+    lambda: |-
+      it.fill(COLOR_BLACK);
+      it.printf(104, 0, id(h24), TextAlign::TOP_RIGHT, "283°");
+      it.printf(104, 31, id(h16), TextAlign::TOP_RIGHT, "35°");
+      it.printf(104, 54, id(h24), TextAlign::TOP_RIGHT, "410°");
+      it.printf(104, 85, id(h16), TextAlign::TOP_RIGHT, "75°");
+      it.printf(104, 113, id(h24), TextAlign::TOP_RIGHT, "405°");
+      it.printf(104, 144, id(h16), TextAlign::TOP_RIGHT, "545°");
+      it.printf(104, 167, id(h24), TextAlign::TOP_RIGHT, "93°");
+      it.printf(104, 198, id(h16), TextAlign::TOP_RIGHT, "25°");
+
+sensor:
+  - platform: uptime
+    name: "${friendly_name} - Uptime Sensor"
+    entity_category: diagnostic
+  - platform: wifi_signal
+    name: "${friendly_name} - WiFi Signal"
+    update_interval: 60s
+    entity_category: diagnostic
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: 39
+      inverted: true
+    name: "${friendly_name} - Button"
+    id: button
+
+switch:
+  - platform: gpio
+    name: "${friendly_name} - Onboard LED"
+    pin: 2  # GPIO2 is the on-board LED on most ESP32 dev boards
+    id: onboard_led
+  - platform: restart
+    name: "${friendly_name} - Restart"
+    id: restart_switch
+    entity_category: config
+
+text_sensor:
+  - platform: version
+    name: "${friendly_name} ESPHome Version"
+    entity_category: diagnostic
+  - platform: wifi_info
+    ip_address:
+      name: "${friendly_name} IP"
+      id: ip_address
+    ssid:
+      name: "${friendly_name} SSID"
+      id: ssid
+    bssid:
+      name: "${friendly_name} BSSID"
+      id: bssid
