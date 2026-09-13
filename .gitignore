@@ -117,4 +117,8 @@ Thumbs.db
 
 # Home Assistant specific
 .storage/
-.config/ 
+.config/
+
+# Local developer workspace (captures, internal notes — never publish)
+local_dev/
+ 

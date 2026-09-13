@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## 5.7.0 **\- 2026-09-13**
+
+### **🛠️ Fixed**
+
+* **Options flow on HA 2025.12+:** Stopped assigning `self.config_entry` in the OptionsFlow handler (read-only property). Configure / device-tracker options work again (issue #10).
+* **Setup failures:** Cloud outages raise `ConfigEntryNotReady` (automatic retry). Invalid credentials raise `ConfigEntryAuthFailed` and start a reauth flow instead of leaving the entry permanently failed.
+* **Idle TCP hang:** After the first packet, reads now time out after 90 seconds of silence and reconnect through the existing rapid/backoff logic.
+
+### **🔄 Changed**
+
+* **`iot_class`:** Corrected from `local_push` to `cloud_push` in `manifest.json` and HACS metadata.
+* **HACS minimum:** Raised to Home Assistant `2024.11.0`.
+* Device-tracker “not home” still disables **Connection Enabled** (unchanged; revisit later).
+* README and user-facing `docs/ENTITIES.md` updated for 5.7.0 behaviour. Maintainer notes and packet captures live under a gitignored `local_dev/` folder.
+
+### **🚀 Added**
+
+* English config/options translations (`strings.json`, `translations/en.json`).
+* Reauthentication step when the stored password is rejected.
+
 ## 5.6.0 **\- 2025-07-07**
 
 ### **🚀 Added**

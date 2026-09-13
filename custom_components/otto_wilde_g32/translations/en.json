@@ -1,0 +1,42 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Otto Wilde G32 Grill",
+        "description": "Sign in with your Otto Wilde account. The grill must be linked to this account and set to Wi-Fi in the official app.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate Otto Wilde account",
+        "description": "The saved password for {email} is no longer valid. Enter the current password.",
+        "data": {
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid email or password.",
+      "cannot_connect": "Could not connect to the Otto Wilde cloud.",
+      "unknown": "Unexpected error."
+    },
+    "abort": {
+      "already_configured": "This Otto Wilde account is already configured.",
+      "reauth_successful": "Re-authentication successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Smart Connection Control",
+        "description": "Optionally link a device_tracker for each grill ({grill_count} found). When the tracker is home, the integration will try to connect.",
+        "data": {}
+      }
+    },
+    "abort": {
+      "no_grills_found": "No grills are loaded for this account. Reload the integration and try again."
+    }
+  }
+}
