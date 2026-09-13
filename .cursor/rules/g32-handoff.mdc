@@ -1,0 +1,15 @@
+---
+description: Read maintainer handoff first; local_dev is private; cloud_push G32 integration
+alwaysApply: true
+---
+
+# Otto Wilde G32 — Cursor project rule
+
+When starting or continuing work in this repo:
+
+1. If `local_dev/docs/HANDOFF.md` exists, read it first (next decisions, PR status, prior choices).
+2. Also see `AGENTS.md` at the repo root.
+3. Never stage, commit, or push anything under `local_dev/` (gitignored captures and maintainer notes).
+4. Published user docs are only `README.md` and `docs/ENTITIES.md`.
+5. Treat the integration as Otto Wilde **cloud** (`cloud_push`), not local LAN control.
+6. Do not revive the reverted “three bugs” PR or merge Snyk pins into `requirements.txt` without an explicit ask.
