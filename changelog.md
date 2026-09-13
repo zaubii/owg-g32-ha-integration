@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 * **`iot_class`:** Corrected from `local_push` to `cloud_push` in `manifest.json` and HACS metadata.
 * **HACS minimum:** Raised to Home Assistant `2024.11.0`.
 * Device-tracker “not home” still disables **Connection Enabled** (unchanged; revisit later).
+* README and user-facing `docs/ENTITIES.md` updated for 5.7.0 behaviour. Maintainer notes and packet captures live under a gitignored `local_dev/` folder.
 
 ### **🚀 Added**
 

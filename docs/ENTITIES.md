@@ -1,87 +1,49 @@
-# Entities (from code)
+# Entities
 
-One HA device is created per grill. Entity unique ids are always `{serialNumber}_{suffix}`. Display names are the short suffixes below (`_attr_name`), not “GrillName Zone 1”. `entity_id` is also set explicitly from the Otto Wilde nickname:
+One Home Assistant **device** is created for each grill on your Otto Wilde account. Entity IDs are based on the grill **nickname** from the Otto Wilde app (lowercased; spaces and hyphens become underscores). The stable unique ID uses the grill serial number, so renaming in the app can change the suggested entity ID but does not break the device link.
 
-```
-{nickname.lower().replace(' ', '_').replace('-', '_')}
-```
+Values update over the Otto Wilde cloud data stream (no polling). GasBuddy fields are read once when the integration loads and do not refresh until you reload the integration.
 
-Nickname characters other than space and hyphen are not stripped. Changing the nickname in the Otto Wilde account therefore changes the intended `entity_id` on the next setup; `unique_id` stays on the serial.
+## Temperatures and gas (live)
 
-None of the entities poll (`_attr_should_poll = False`).
+| Name | Description |
+| --- | --- |
+| Zone 1 – Zone 4 | Heating-zone temperatures (°C). Unavailable when the grill reports no reading. |
+| Probe 1 – Probe 4 | External meat-probe temperatures (°C). Unavailable when a probe is not connected / not reporting. |
+| Gas Weight | Remaining gas weight in grams. |
+| Gas Level | Remaining gas as a percentage. |
+| Last Data Received | UTC timestamp of the last successfully parsed packet (useful for automations and connection health). |
+| Raw Hex Dump | Full packet as hex (diagnostic; disabled by default). |
 
-## TCP sensors (`sensor.py` / `G32TcpSensor`)
+## Status (live)
 
-Source: parsed packet dict.
+| Name | Description |
+| --- | --- |
+| Firebox | On when the lid / firebox is open. |
+| Light | On when the grill light is on. |
+| Gas Low | On when gas weight is below 2200 g. |
 
-| Unique-id suffix | Name | Device class | Unit | Notes |
-| --- | --- | --- | --- | --- |
-| `zone_1` … `zone_4` | Zone 1–4 | temperature | °C | `None` when hex is `9600` |
-| `probe_1` … `probe_4` | Probe 1–4 | temperature | °C | same |
-| `gas_weight` | Gas Weight | weight | g | unsigned 16-bit from bytes 22–23 |
-| `gas_level` | Gas Level | **battery** | % | byte 31; battery class is what the code sets |
-| `raw_hex_dump` | Raw Hex Dump | — | — | diagnostic, disabled by default |
+## GasBuddy (snapshot at setup)
 
-Temperature / weight / battery sensors use `state_class = measurement`.
+These entities appear only if the Otto Wilde API returns GasBuddy data for the grill.
 
-## GasBuddy static sensors (`G32StaticSensor`)
+| Name | Description |
+| --- | --- |
+| New Gas Installed | Timestamp from GasBuddy for tank install. |
+| Gas Setup Changed | Timestamp from GasBuddy (API field as returned at setup). |
+| Gas Consumed | Timestamp from GasBuddy (API field as returned at setup). |
+| Gas Original Capacity | Configured bottle capacity (kg). |
+| Gas Tara Weight | Configured empty bottle weight (kg). |
 
-Created only if the corresponding `gasbuddyInfo` key is present (timestamps) or not `None` (weights). Values are captured once at platform setup from the REST snapshot. They never receive TCP or later REST updates.
+## Connection and diagnostics
 
-| Unique-id suffix | Name | REST key | Device class | Unit |
-| --- | --- | --- | --- | --- |
-| `gas_installed` | New Gas Installed | `tankInstalledDate` | timestamp | — |
-| `gas_changed` | Gas Setup Changed | `tsGasConsumed` | timestamp | — |
-| `gas_consumed` | Gas Consumed | `tsLastModified` | timestamp | — |
-| `gas_original_capacity` | Gas Original Capacity | `gasCapacity` | weight | kg |
-| `gas_tara_weight` | Gas Tara Weight | `tareWeight` | weight | kg |
+| Name | Description |
+| --- | --- |
+| Connection Enabled | Master switch for the cloud data stream for this grill. Turn off to stop reconnect attempts. Turns off automatically after ~30 minutes of failed backoff, or when a linked device tracker is not `home`. Turn it back on when the grill is online again. |
+| API Login Calls | How many times this account logged into the Otto Wilde API (persists across restarts). |
+| API Grills Calls | How many times grill details were fetched from the API (persists across restarts). |
+| TCP Connection Attempts | Connection attempts for this grill (persists across restarts). |
+| TCP Backoff Counter | Current long-term reconnect attempt count. |
+| Next Backoff Attempt | When the next backoff reconnect is scheduled (if backing off). |
 
-ISO timestamps with a trailing `Z` are converted via `value.replace("Z", "+00:00")` then `datetime.fromisoformat`.
-
-## Liveness (`G32LivenessSensor`, RestoreEntity)
-
-| Unique-id suffix | Name | Device class |
-| --- | --- | --- |
-| `last_data_received` | Last Data Received | timestamp |
-
-Updated whenever any parsed packet is dispatched. Restores the last HA state on restart. Does not by itself trigger reconnects.
-
-## Diagnostic sensors (`G32DiagnosticSensor`, RestoreEntity)
-
-All `entity_category = diagnostic`.
-
-| Unique-id suffix | Name | State class | Scope |
-| --- | --- | --- | --- |
-| `api_login_calls` | API Login Calls | total_increasing | account (same value on every grill device) |
-| `api_grills_calls` | API Grills Calls | total_increasing | account |
-| `tcp_connection_attempts` | TCP Connection Attempts | total_increasing | per grill |
-| `tcp_reconnect_counter` | TCP Backoff Counter | total_increasing | per grill |
-| `next_connection_attempt` | Next Backoff Attempt | timestamp | per grill; `None` when not backing off |
-
-Counters restore from last state and call `api_client.sync_counter`. Grill-specific restoration is applied for `tcp_connection_attempts` and `tcp_reconnect_counter` only (`GRILL_SPECIFIC_COUNTERS`).
-
-`next_connection_attempt` naive datetimes are tagged UTC before writing state.
-
-## Binary sensors (`binary_sensor.py`)
-
-| Unique-id suffix | Name | Device class | Packet key | Icon |
-| --- | --- | --- | --- | --- |
-| `firebox_open` | Firebox | opening | `lid_open` | `mdi:window-opened` / `mdi:window-closed` |
-| `light_on` | Light | light | `light_on` | `mdi:wall-sconce-flat` |
-| `gas_low` | Gas Low | problem | `gas_low` | default |
-
-Initial `is_on` is `None` until the first packet.
-
-## Switch (`switch.py`)
-
-| Unique-id suffix | Name | Device class |
-| --- | --- | --- |
-| `connection_enabled` | Connection Enabled | switch |
-
-`is_on` is `api_client.is_grill_enabled(serial)`. Turn on/off calls `enable_grill`. Icon is `mdi:lan-connect` or `mdi:lan-disconnect`.
-
-The switch is also written by the TCP loop: 30-minute backoff timeout and “tracker not home” both call `enable_grill(..., False)`.
-
-## Entity count per grill (typical)
-
-If GasBuddy fields are all present: 11 TCP sensors + 5 static + 1 liveness + 5 diagnostic + 3 binary + 1 switch = **26** entities. Missing GasBuddy keys omit those static sensors.
+For a typical grill with GasBuddy data, expect about **26** entities.
